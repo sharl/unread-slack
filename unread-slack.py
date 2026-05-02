@@ -39,7 +39,7 @@ class taskTray:
             MenuItem(TITLE, lambda: False),
             MenuItem('Exit', self.stopApp),
         )
-        self.app = Icon(name='PYTHON.win32.test', title='test', icon=self.dimm_image, menu=menu)
+        self.app = Icon(name=TITLEE, title=TITLE, icon=self.dimm_image, menu=menu)
 
     def doTask(self):
         def check_unread_slack():
