@@ -1,0 +1,6 @@
+BeautifulSoup4
+darkdetect
+pillow
+pystray
+pywin32
+requests
