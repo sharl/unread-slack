@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup as bs
 from pystray import Icon, Menu, MenuItem
 import darkdetect as dd
 import requests
+import win32con
 import win32gui
 
 TITLE = 'unread Slack messages'
@@ -36,37 +37,40 @@ class taskTray:
                 self.dimm_image = ImageEnhance.Brightness(self.icon_image.convert('RGB')).enhance(0.6).convert('L')
 
         menu = Menu(
-            MenuItem(TITLE, lambda: False),
+            MenuItem(TITLE, self.setForeground, default=True),
             MenuItem('Exit', self.stopApp),
         )
         self.app = Icon(name=TITLE, title=TITLE, icon=self.dimm_image, menu=menu)
 
+    def _scan_slack_window(self):
+        target_hwnd = []
+
+        def callback(hwnd, _):
+            if win32gui.IsWindowVisible(hwnd):
+                title = win32gui.GetWindowText(hwnd).strip()
+                if 'Slack' in title and title.startswith(('(*)', 'Slack - (*)')):
+                    target_hwnd.append(hwnd)
+                    return False
+            return True
+
+        try:
+            win32gui.EnumWindows(callback, None)
+        except Exception:
+            pass
+
+        return target_hwnd[0] if target_hwnd else None
+
+    def setForeground(self):
+        hwnd = self._scan_slack_window()
+        if hwnd:
+            if win32gui.IsIconic(hwnd):
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            win32gui.SetForegroundWindow(hwnd)
+
     def doTask(self):
-        def check_unread_slack():
-            found = False
-
-            def callback(hwnd, _):
-                nonlocal found
-                if win32gui.IsWindowVisible(hwnd):
-                    title = win32gui.GetWindowText(hwnd).strip()
-                    if title and 'Slack' in title:
-                        if title.startswith((
-                                '(*)',
-                                'Slack - (*)',
-                        )):
-                            found = True
-                            return False
-                return True
-
-            try:
-                win32gui.EnumWindows(callback, None)
-            except Exception:
-                pass
-            return found
-
         while self.running:
             begin = time.time()
-            if check_unread_slack():
+            if self._scan_slack_window():
                 self.app.icon = self.icon_image
                 self.app.title = 'Slack - Unread message detected'
             else:
