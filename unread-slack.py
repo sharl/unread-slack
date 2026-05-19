@@ -48,7 +48,7 @@ class taskTray:
         def callback(hwnd, _):
             if win32gui.IsWindowVisible(hwnd):
                 title = win32gui.GetWindowText(hwnd).strip()
-                if 'Slack' in title and title.startswith(('(*)', 'Slack - (*)')):
+                if 'Slack' in title and title.startswith(('(*)', 'Slack - (*)', 'Slack - *')):
                     target_hwnd.append(hwnd)
                     return False
             return True
