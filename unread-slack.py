@@ -13,7 +13,7 @@ import win32con
 import win32gui
 
 TITLE = 'unread Slack messages'
-INTERVAL = 1
+INTERVALS = [3, 30, 60, 120]
 BASE_URL = 'https://slack.com'
 PreferredAppMode = {
     'Light': 0,
@@ -36,11 +36,23 @@ class taskTray:
                 self.icon_image = Image.open(io.BytesIO(session.get(favicon).content))
                 self.dimm_image = ImageEnhance.Brightness(self.icon_image.convert('RGB')).enhance(0.6).convert('L')
 
+        # set default interval
+        self.interval = INTERVALS[0]
+        self.interval_menu = []
+        for t in INTERVALS:
+            self.interval_menu.append(
+                MenuItem(str(t), self.setInterval, checked=lambda item: str(self.interval) == str(item))
+            )
         menu = Menu(
             MenuItem(TITLE, self.setForeground, default=True),
+            MenuItem('Interval', Menu(*self.interval_menu)),
             MenuItem('Exit', self.stopApp),
         )
         self.app = Icon(name=TITLE, title=TITLE, icon=self.dimm_image, menu=menu)
+
+    def setInterval(self, _, item):
+        self.interval = int(str(item))
+        # self.app.update_menu()
 
     def _scan_slack_window(self):
         target_hwnd = []
@@ -77,7 +89,7 @@ class taskTray:
                 self.app.icon = self.dimm_image
                 self.app.title = 'Slack - No unread messages'
             elapsed = time.time() - begin
-            time.sleep(max(0, INTERVAL - elapsed))
+            time.sleep(max(0, self.interval - elapsed))
 
     def stopApp(self):
         self.running = False
