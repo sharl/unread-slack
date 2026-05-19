@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import io
 import ctypes
+import io
 import threading
 import time
 
@@ -25,7 +25,7 @@ ctypes.windll['uxtheme.dll'][135](PreferredAppMode[dd.theme()])
 
 class taskTray:
     def __init__(self):
-        self.running = False
+        self.stop_event = threading.Event()
 
         session = requests.Session()
         with session.get(BASE_URL) as r:
@@ -52,7 +52,6 @@ class taskTray:
 
     def setInterval(self, _, item):
         self.interval = int(str(item))
-        # self.app.update_menu()
 
     def _scan_slack_window(self):
         target_hwnd = []
@@ -80,7 +79,7 @@ class taskTray:
             win32gui.SetForegroundWindow(hwnd)
 
     def doTask(self):
-        while self.running:
+        while not self.stop_event.is_set():
             begin = time.time()
             if self._scan_slack_window():
                 self.app.icon = self.icon_image
@@ -89,14 +88,16 @@ class taskTray:
                 self.app.icon = self.dimm_image
                 self.app.title = 'Slack - No unread messages'
             elapsed = time.time() - begin
-            time.sleep(max(0, self.interval - elapsed))
+            sleep_time = max(0, self.interval - elapsed)
+            if self.stop_event.wait(sleep_time):
+                break
 
     def stopApp(self):
-        self.running = False
+        self.stop_event.set()
         self.app.stop()
 
     def runApp(self):
-        self.running = True
+        self.stop_event.clear()
 
         task_thread = threading.Thread(target=self.doTask)
         task_thread.start()
