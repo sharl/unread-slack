@@ -24,8 +24,8 @@
             }
         } else if (!hasUnread && document.title.startsWith('(*)')) {
             document.title = document.title.replace('(*) ', '');
-            if ('clearAppBadge' in navigator) {
-                navigator.clearAppBadge();
+            if ('setAppBadge' in navigator) {
+                navigator.setAppBadge(0);
             }
         }
     };
