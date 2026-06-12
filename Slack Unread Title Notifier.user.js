@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Slack Unread Title Notifier
 // @namespace    https://github.com/sharl/unread-slack
-// @version      1.0.0
+// @version      1.0.1
 // @description  Unread items in the sidebar will be detected and an asterisk (*) will be added to their titles
 // @author       sharl
 // @match        https://app.slack.com/*
@@ -19,8 +19,14 @@
 
         if (hasUnread && !document.title.startsWith('(*)')) {
             document.title = '(*) ' + document.title;
+            if ('setAppBadge' in navigator) {
+                navigator.setAppBadge();
+            }
         } else if (!hasUnread && document.title.startsWith('(*)')) {
             document.title = document.title.replace('(*) ', '');
+            if ('clearAppBadge' in navigator) {
+                navigator.clearAppBadge();
+            }
         }
     };
 
