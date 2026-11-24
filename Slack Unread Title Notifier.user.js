@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Slack Unread Title Notifier
 // @namespace    https://github.com/sharl/unread-slack
-// @version      1.0.1
+// @version      1.0.2
 // @description  Unread items in the sidebar will be detected and an asterisk (*) will be added to their titles
 // @author       sharl
 // @match        https://app.slack.com/*
@@ -15,7 +15,7 @@
     const updateTitle = () => {
         // Find a class name that indicates "just an unread message" other than a mention.
         // This may change due to updates to Slack's specifications, but this is just one example at the moment.
-        const hasUnread = document.querySelector('.p-unread_dot');
+        const hasUnread = document.querySelector('.p-unread_dot:not([data-qa])');
 
         if (hasUnread && !document.title.startsWith('(*)')) {
             document.title = '(*) ' + document.title;
